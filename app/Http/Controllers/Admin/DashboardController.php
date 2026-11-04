@@ -10,33 +10,32 @@ use Illuminate\View\View;
 class DashboardController extends Controller
 {
     /**
-     * Главная страница админки со сводной статистикой.
+     * Показывает главную страницу админ-панели.
      */
     public function __invoke(): View
     {
-        $stats = [
+        $stats = [ // Собираем небольшую статистику для админа.
             'users' => User::query()->count(), // Всего пользователей.
             'texts' => Text::query()->count(), // Всего статей.
-            'published' => Text::query()->published()->count(), // Видимых статей.
             'blocked' => Text::query()->where('is_blocked', true)->count(), // Заблокированных статей.
         ];
 
-        $latestTexts = Text::query()
-            ->with(['category', 'author'])
-            ->latest()
-            ->take(5) // Последние пять статей.
+        $latestTexts = Text::query() // Запрос к статьям.
+            ->with(['category', 'author']) // Загружаем связи.
+            ->latest() // Сортируем от новых к старым.
+            ->take(5) // Берём только пять статей.
             ->get();
 
-        $latestUsers = User::query()
-            ->with('role')
-            ->latest()
-            ->take(5) // Последние пять пользователей.
+        $latestUsers = User::query() // Запрос к пользователям.
+            ->with('role') // Загружаем роль.
+            ->latest() // Сортируем от новых к старым.
+            ->take(5) // Берём только пять пользователей.
             ->get();
 
-        return view('admin.dashboard', [
-            'stats' => $stats,
-            'latestTexts' => $latestTexts,
-            'latestUsers' => $latestUsers,
+        return view('admin.dashboard', [ // Открываем шаблон админки.
+            'stats' => $stats, // Передаём статистику.
+            'latestTexts' => $latestTexts, // Передаём последние статьи.
+            'latestUsers' => $latestUsers, // Передаём новых пользователей.
         ]);
     }
 }

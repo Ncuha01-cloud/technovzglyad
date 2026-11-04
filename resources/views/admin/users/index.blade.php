@@ -1,51 +1,41 @@
-@extends('layouts.app')
+@extends('layouts.app') {{-- Используем общий каркас сайта. --}}
 
-@section('title', 'Пользователи — админка')
+@section('title', 'Пользователи — админка') {{-- Заголовок вкладки. --}}
 
 @section('content')
-    <div class="page-heading">
-        <span class="eyebrow">Доступ</span>
-        <h1 class="page-heading__title">Пользователи и роли</h1>
-        <p class="page-heading__text">
-            Назначайте роли: читатель видит новости, журналист пишет статьи, администратор управляет сайтом.
-        </p>
-    </div>
+    <h1>Пользователи</h1> {{-- Заголовок страницы. --}}
 
-    <div class="table-wrap">
-        <table class="table table--users">
+    <div class="table-wrap"> {{-- Обёртка для прокрутки таблицы. --}}
+        <table class="table"> {{-- Таблица пользователей. --}}
             <thead>
                 <tr>
-                    <th>Логин</th>
-                    <th>Текущая роль</th>
-                    <th>Дата регистрации</th>
-                    <th class="table__actions">Сменить роль</th>
+                    <th>Логин</th> {{-- Название столбца. --}}
+                    <th>Роль</th> {{-- Название столбца. --}}
+                    <th>Сменить роль</th> {{-- Название столбца. --}}
                 </tr>
             </thead>
             <tbody>
-                @foreach ($users as $user)
+                @foreach ($users as $user) {{-- Перебираем пользователей. --}}
                     <tr>
                         <td>
-                            {{ $user->login }}
-                            @if ($user->id === auth()->id())
-                                <span class="badge badge--self">это вы</span>
+                            {{ $user->login }} {{-- Логин пользователя. --}}
+                            @if ($user->id === auth()->id()) {{-- Проверяем, это текущий админ. --}}
+                                (это вы)
                             @endif
                         </td>
-                        <td><span class="badge badge--role">{{ $user->role?->label }}</span></td>
-                        <td>{{ $user->created_at->format('d.m.Y') }}</td>
-                        <td class="table__actions">
-                            <form class="inline-form inline-form--wide" action="{{ route('admin.users.role', $user) }}" method="POST">
-                                @csrf
-                                @method('PUT')
+                        <td>{{ $user->role?->label }}</td> {{-- Текущая роль. --}}
+                        <td>
+                            <form class="inline" action="{{ route('admin.users.role', $user) }}" method="POST"> {{-- Форма смены роли. --}}
+                                @csrf {{-- Защита формы. --}}
+                                @method('PUT') {{-- Метод обновления. --}}
 
-                                <select class="form__select form__select--small" name="role_id" aria-label="Роль пользователя {{ $user->login }}">
-                                    @foreach ($roles as $role)
-                                        <option value="{{ $role->id }}" @selected($user->role_id === $role->id)>
-                                            {{ $role->label }}
-                                        </option>
+                                <select name="role_id"> {{-- Список ролей. --}}
+                                    @foreach ($roles as $role) {{-- Перебираем роли. --}}
+                                        <option value="{{ $role->id }}" @selected($user->role_id === $role->id)>{{ $role->label }}</option> {{-- Текущая роль выбрана. --}}
                                     @endforeach
                                 </select>
 
-                                <button class="btn btn--ghost btn--small" type="submit">Сохранить</button>
+                                <button class="btn btn-small" type="submit">Сохранить</button> {{-- Кнопка сохранения. --}}
                             </form>
                         </td>
                     </tr>
@@ -54,5 +44,5 @@
         </table>
     </div>
 
-    {{ $users->links('vendor.pagination.site') }}
+    {{ $users->links('vendor.pagination.site') }} {{-- Выводим кнопки страниц. --}}
 @endsection

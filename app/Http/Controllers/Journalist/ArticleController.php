@@ -13,33 +13,33 @@ use Illuminate\View\View;
 class ArticleController extends Controller
 {
     /**
-     * Кабинет журналиста: список своих статей (админ видит все).
+     * Показывает список статей журналиста.
      */
     public function index(): View
     {
-        $query = Text::query()
-            ->with('category') // Категория нужна в таблице.
-            ->latest(); // Новые статьи выше.
+        $query = Text::query() // Начинаем запрос к таблице texts.
+            ->with('category') // Загружаем категорию для таблицы.
+            ->latest(); // Сортируем от новых к старым.
 
-        if (! auth()->user()->isAdmin()) {
-            $query->where('user_id', auth()->id()); // Журналист видит только свои материалы.
+        if (! auth()->user()->isAdmin()) { // Если это не администратор...
+            $query->where('user_id', auth()->id()); // ...показываем только его статьи.
         }
 
-        return view('journalist.index', [
-            'texts' => $query->paginate(10),
+        return view('journalist.index', [ // Открываем кабинет журналиста.
+            'texts' => $query->paginate(10), // По 10 статей на странице.
         ]);
     }
 
     /**
-     * Форма создания новой статьи.
+     * Показывает форму создания статьи.
      */
     public function create(): View
     {
-        return view('journalist.form', [
-            'text' => new Text(), // Пустая модель для общего шаблона формы.
-            'categories' => Category::query()->orderBy('name')->get(), // Варианты категорий.
-            'action' => route('journalist.articles.store'), // Куда отправлять форму.
-            'method' => 'POST', // HTTP-метод создания.
+        return view('journalist.form', [ // Открываем общий шаблон формы.
+            'text' => new Text(), // Пустая модель для новой статьи.
+            'categories' => Category::query()->orderBy('name')->get(), // Список категорий.
+            'action' => route('journalist.articles.store'), // Куда отправить форму.
+            'method' => 'POST', // Метод создания записи.
         ]);
     }
 
@@ -48,48 +48,43 @@ class ArticleController extends Controller
      */
     public function store(StoreTextRequest $request): RedirectResponse
     {
-        $data = $request->validated(); // Только проверенные поля.
-        $data['is_published'] = $request->boolean('is_published'); // Превращаем чекбокс в bool.
-        $data['user_id'] = $request->user()->id; // Автор — текущий пользователь.
+        $data = $request->validated(); // Берём только проверенные поля.
+        $data['user_id'] = $request->user()->id; // Автором будет текущий пользователь.
 
-        $text = Text::query()->create($data);
+        $text = Text::query()->create($data); // Создаём статью в базе.
 
-        return redirect()
+        return redirect() // Переходим обратно в кабинет.
             ->route('journalist.index')
-            ->with('success', 'Статья «'.$text->heading.'» сохранена.');
+            ->with('success', 'Статья «'.$text->heading.'» сохранена.'); // Показываем сообщение.
     }
 
     /**
-     * Форма редактирования статьи.
+     * Показывает форму редактирования статьи.
      */
     public function edit(Text $text): View
     {
-        $this->ensureCanEdit($text); // Проверяем, что это статья текущего журналиста.
+        $this->ensureCanEdit($text); // Проверяем права на статью.
 
-        return view('journalist.form', [
-            'text' => $text,
-            'categories' => Category::query()->orderBy('name')->get(),
-            'action' => route('journalist.articles.update', $text),
-            'method' => 'PUT',
+        return view('journalist.form', [ // Открываем общий шаблон формы.
+            'text' => $text, // Редактируемая статья.
+            'categories' => Category::query()->orderBy('name')->get(), // Список категорий.
+            'action' => route('journalist.articles.update', $text), // Куда отправить форму.
+            'method' => 'PUT', // Метод обновления записи.
         ]);
     }
 
     /**
-     * Обновляет статью.
+     * Обновляет статью в базе данных.
      */
     public function update(UpdateTextRequest $request, Text $text): RedirectResponse
     {
-        $this->ensureCanEdit($text);
+        $this->ensureCanEdit($text); // Проверяем права на статью.
 
-        $data = $request->validated();
-        $data['is_published'] = $request->boolean('is_published');
-        // Поле is_blocked сюда не попадает: журналист не может снять блокировку.
+        $text->update($request->validated()); // Сохраняем проверенные изменения.
 
-        $text->update($data);
-
-        return redirect()
+        return redirect() // Возвращаемся в кабинет.
             ->route('journalist.index')
-            ->with('success', 'Статья «'.$text->heading.'» обновлена.');
+            ->with('success', 'Статья «'.$text->heading.'» обновлена.'); // Показываем сообщение.
     }
 
     /**
@@ -97,14 +92,14 @@ class ArticleController extends Controller
      */
     public function destroy(Text $text): RedirectResponse
     {
-        $this->ensureCanEdit($text);
+        $this->ensureCanEdit($text); // Проверяем права на статью.
 
-        $heading = $text->heading; // Сохраняем заголовок для сообщения.
-        $text->delete();
+        $heading = $text->heading; // Запоминаем заголовок для сообщения.
+        $text->delete(); // Удаляем статью из базы.
 
-        return redirect()
+        return redirect() // Возвращаемся в кабинет.
             ->route('journalist.index')
-            ->with('success', 'Статья «'.$heading.'» удалена.');
+            ->with('success', 'Статья «'.$heading.'» удалена.'); // Показываем сообщение.
     }
 
     /**
@@ -112,9 +107,9 @@ class ArticleController extends Controller
      */
     private function ensureCanEdit(Text $text): void
     {
-        $user = auth()->user();
+        $user = auth()->user(); // Текущий пользователь.
 
-        if (! $user->isAdmin() && $user->id !== $text->user_id) {
+        if (! $user->isAdmin() && $user->id !== $text->user_id) { // Чужая статья запрещена.
             abort(403, 'Вы можете редактировать только свои статьи.');
         }
     }

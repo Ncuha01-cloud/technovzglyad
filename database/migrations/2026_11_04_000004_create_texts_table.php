@@ -7,35 +7,33 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Создаёт основную рабочую таблицу статей.
-     * Каждая статья принадлежит одному автору и одной категории.
+     * Создаёт таблицу статей.
+     * Каждая статья принадлежит одной категории и одному автору.
      */
     public function up(): void
     {
         Schema::create('texts', function (Blueprint $table) {
-            $table->id(); // Первичный ключ статьи.
+            $table->id(); // Уникальный номер статьи.
             $table->string('heading'); // Заголовок статьи.
             $table->longText('text'); // Полный текст статьи.
-            $table->foreignId('category_id') // Внешний ключ на категорию.
-                ->constrained('categories') // Ссылается на таблицу categories.
-                ->restrictOnDelete(); // Категорию с статьями удалить нельзя.
-            $table->foreignId('user_id') // Внешний ключ на автора.
-                ->constrained('users') // Ссылается на таблицу users.
-                ->cascadeOnDelete(); // При удалении автора его статьи удаляются.
-            $table->boolean('is_published')->default(true); // Опубликована ли статья.
-            $table->boolean('is_blocked')->default(false); // Заблокирована ли статья администратором.
-            $table->timestamps(); // Поля created_at и updated_at.
+            $table->foreignId('category_id') // Номер категории статьи.
+                ->constrained('categories') // Ссылка на таблицу categories.
+                ->restrictOnDelete(); // Категорию со статьями удалить нельзя.
+            $table->foreignId('user_id') // Номер автора статьи.
+                ->constrained('users') // Ссылка на таблицу users.
+                ->cascadeOnDelete(); // Вместе с автором удаляются его статьи.
+            $table->boolean('is_blocked')->default(false); // Признак блокировки администратором.
+            $table->timestamps(); // Даты создания и обновления записи.
 
-            // Составной индекс ускоряет выборку ленты: фильтр по статусам + сортировка по дате.
-            $table->index(['is_published', 'is_blocked', 'created_at']);
+            $table->index(['is_blocked', 'created_at']); // Индекс ускоряет вывод ленты.
         });
     }
 
     /**
-     * Откатывает миграцию.
+     * Удаляет таблицу статей при откате миграции.
      */
     public function down(): void
     {
-        Schema::dropIfExists('texts');
+        Schema::dropIfExists('texts'); // Удаляем таблицу texts.
     }
 };

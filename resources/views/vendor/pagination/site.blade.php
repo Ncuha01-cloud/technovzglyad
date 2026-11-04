@@ -1,19 +1,17 @@
-@if ($paginator->hasPages())
-    <nav class="pagination" role="navigation" aria-label="Навигация по страницам">
-        @if ($paginator->onFirstPage())
-            <span class="pagination__link is-disabled" aria-disabled="true">← Назад</span>
+@if ($paginator->hasPages()) {{-- Показываем блок, только если страниц больше одной. --}}
+    <nav class="pagination"> {{-- Навигация по страницам. --}}
+        @if ($paginator->onFirstPage()) {{-- Проверяем первую страницу. --}}
+            <span class="disabled">← Назад</span> {{-- Неактивная кнопка «Назад». --}}
         @else
-            <a class="pagination__link" href="{{ $paginator->previousPageUrl() }}" rel="prev">← Назад</a>
+            <a href="{{ $paginator->previousPageUrl() }}">← Назад</a> {{-- Ссылка на предыдущую страницу. --}}
         @endif
 
-        <span class="pagination__info">
-            Страница {{ $paginator->currentPage() }} из {{ $paginator->lastPage() }}
-        </span>
+        <span>Страница {{ $paginator->currentPage() }} из {{ $paginator->lastPage() }}</span> {{-- Номер текущей страницы. --}}
 
-        @if ($paginator->hasMorePages())
-            <a class="pagination__link" href="{{ $paginator->nextPageUrl() }}" rel="next">Вперёд →</a>
+        @if ($paginator->hasMorePages()) {{-- Проверяем, есть ли следующая страница. --}}
+            <a href="{{ $paginator->nextPageUrl() }}">Вперёд →</a> {{-- Ссылка на следующую страницу. --}}
         @else
-            <span class="pagination__link is-disabled" aria-disabled="true">Вперёд →</span>
+            <span class="disabled">Вперёд →</span> {{-- Неактивная кнопка «Вперёд». --}}
         @endif
     </nav>
 @endif

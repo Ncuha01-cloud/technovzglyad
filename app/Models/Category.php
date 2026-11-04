@@ -2,29 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'slug'])]
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory; // Подключаем фабрики для тестов.
+
+    protected $fillable = ['name', 'slug']; // Поля, которые можно заполнять.
 
     /**
-     * Статьи, относящиеся к этой категории.
+     * Статьи этой категории.
      */
     public function texts(): HasMany
     {
-        return $this->hasMany(Text::class);
+        return $this->hasMany(Text::class); // У одной категории много статей.
     }
 
     /**
-     * В URL категория идентифицируется по slug, а не по числовому id.
+     * В адресе используем slug вместо числового id.
      */
     public function getRouteKeyName(): string
     {
-        return 'slug';
+        return 'slug'; // Например, /categories/space.
     }
 }

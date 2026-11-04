@@ -1,39 +1,28 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>@yield('title', 'Главная') — {{ config('app.name') }}</title>
-    <meta name="description" content="@yield('description', 'Новости науки, технологий и будущего. Учебный проект на Laravel.')">
-
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <meta charset="utf-8"> {{-- Кодировка страницы. --}}
+    <meta name="viewport" content="width=device-width, initial-scale=1"> {{-- Нормальное отображение на телефоне. --}}
+    <title>@yield('title', 'Главная') — {{ config('app.name') }}</title> {{-- Заголовок вкладки браузера. --}}
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}"> {{-- Подключаем отдельный файл стилей. --}}
 </head>
 <body>
-    <a class="skip-link" href="#main">Перейти к содержимому</a>
-
+    {{-- Шапка вынесена в отдельный компонент и подключается на каждой странице. --}}
     <x-site.header />
 
-    <main class="site-main" id="main">
-        <div class="container">
-            @if (session('success'))
-                <div class="alert alert--success" role="status">
-                    {{ session('success') }}
-                </div>
-            @endif
+    <main class="container"> {{-- Основное содержимое страницы. --}}
+        @if (session('success')) {{-- Проверяем сообщение об успехе. --}}
+            <div class="alert alert-success">{{ session('success') }}</div> {{-- Выводим сообщение. --}}
+        @endif
 
-            @if (session('error'))
-                <div class="alert alert--error" role="alert">
-                    {{ session('error') }}
-                </div>
-            @endif
+        @if (session('error')) {{-- Проверяем сообщение об ошибке. --}}
+            <div class="alert alert-error">{{ session('error') }}</div> {{-- Выводим сообщение. --}}
+        @endif
 
-            @yield('content')
-        </div>
+        @yield('content') {{-- Сюда вставляется содержимое конкретной страницы. --}}
     </main>
 
+    {{-- Подвал вынесен в отдельный компонент и подключается на каждой странице. --}}
     <x-site.footer />
 </body>
 </html>

@@ -1,67 +1,28 @@
-@extends('layouts.app')
+@extends('layouts.app') {{-- Используем общий каркас сайта. --}}
 
-@section('title', 'Вход')
+@section('title', 'Вход') {{-- Заголовок вкладки. --}}
 
 @section('content')
-    <div class="auth-wrap">
-        <div class="auth-card">
-            <span class="eyebrow">Аккаунт</span>
-            <h1 class="auth-card__title">Вход на сайт</h1>
-            <p class="auth-card__lead">Введите логин и пароль, чтобы продолжить работу.</p>
+    <h1>Вход</h1> {{-- Заголовок формы. --}}
 
-            <form class="form" action="{{ route('login.store') }}" method="POST">
-                @csrf
+    <form class="form" action="{{ route('login.store') }}" method="POST"> {{-- Отправляем данные на проверку. --}}
+        @csrf {{-- Защита формы от подделки. --}}
 
-                <div class="form__group">
-                    <label class="form__label" for="login">Логин</label>
-                    <input
-                        class="form__input @error('login') is-invalid @enderror"
-                        id="login"
-                        name="login"
-                        type="text"
-                        value="{{ old('login') }}"
-                        autocomplete="username"
-                        autofocus
-                        required
-                    >
-                    @error('login')
-                        <p class="form__error">{{ $message }}</p>
-                    @enderror
-                </div>
+        <label for="login">Логин</label> {{-- Подпись поля. --}}
+        <input id="login" name="login" type="text" value="{{ old('login') }}" required> {{-- Поле логина. --}}
+        @error('login') {{-- Проверяем ошибку поля. --}}
+            <p class="error">{{ $message }}</p> {{-- Выводим текст ошибки. --}}
+        @enderror
 
-                <div class="form__group">
-                    <label class="form__label" for="password">Пароль</label>
-                    <input
-                        class="form__input @error('password') is-invalid @enderror"
-                        id="password"
-                        name="password"
-                        type="password"
-                        autocomplete="current-password"
-                        required
-                    >
-                    @error('password')
-                        <p class="form__error">{{ $message }}</p>
-                    @enderror
-                </div>
+        <label for="password">Пароль</label> {{-- Подпись поля. --}}
+        <input id="password" name="password" type="password" required> {{-- Поле пароля. --}}
+        @error('password') {{-- Проверяем ошибку поля. --}}
+            <p class="error">{{ $message }}</p> {{-- Выводим текст ошибки. --}}
+        @enderror
 
-                <label class="checkbox">
-                    <input type="checkbox" name="remember" value="1">
-                    <span>Запомнить меня</span>
-                </label>
+        <button class="btn btn-primary" type="submit">Войти</button> {{-- Кнопка отправки формы. --}}
+    </form>
 
-                <button class="btn btn--primary btn--full" type="submit">Войти</button>
-            </form>
-
-            <p class="auth-card__footer">
-                Нет аккаунта? <a href="{{ route('register') }}">Зарегистрироваться</a>
-            </p>
-
-            <div class="demo-accounts">
-                <span class="demo-accounts__title">Демо-аккаунты</span>
-                <code>admin / admin12345</code>
-                <code>journalist / journalist123</code>
-                <code>reader / reader12345</code>
-            </div>
-        </div>
-    </div>
+    <p>Нет аккаунта? <a href="{{ route('register') }}">Зарегистрироваться</a></p> {{-- Ссылка на регистрацию. --}}
+    <p class="hint">Демо-аккаунт: admin / admin12345</p> {{-- Подсказка для проверки. --}}
 @endsection

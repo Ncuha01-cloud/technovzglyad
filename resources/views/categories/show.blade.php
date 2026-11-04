@@ -1,39 +1,16 @@
-@extends('layouts.app')
+@extends('layouts.app') {{-- Используем общий каркас сайта. --}}
 
-@section('title', e($category->name))
-@section('description', 'Статьи категории «'.$category->name.'».')
+@section('title', $category->name) {{-- Название категории в заголовке вкладки. --}}
 
 @section('content')
-    <nav class="breadcrumbs" aria-label="Хлебные крошки">
-        <a href="{{ route('home') }}">Главная</a>
-        <span aria-hidden="true">/</span>
-        <a href="{{ route('categories.index') }}">Категории</a>
-        <span aria-hidden="true">/</span>
-        <span>{{ $category->name }}</span>
-    </nav>
+    <p><a href="{{ route('categories.index') }}">← Все категории</a></p> {{-- Ссылка назад к списку. --}}
+    <h1>{{ $category->name }}</h1> {{-- Название выбранной категории. --}}
 
-    <div class="page-heading">
-        <span class="eyebrow">Категория</span>
-        <h1 class="page-heading__title">{{ $category->name }}</h1>
-        <p class="page-heading__text">
-            Всего материалов: {{ $texts->total() }}. Показаны только опубликованные статьи.
-        </p>
-    </div>
+    @forelse ($texts as $text) {{-- Перебираем статьи категории. --}}
+        <x-site.article-card :text="$text" /> {{-- Выводим карточку статьи. --}}
+    @empty
+        <p>В этой категории пока нет статей.</p> {{-- Сообщение для пустой категории. --}}
+    @endforelse
 
-    @if ($texts->count())
-        <div class="card-grid">
-            @foreach ($texts as $text)
-                <x-site.article-card :text="$text" />
-            @endforeach
-        </div>
-
-        {{ $texts->links('vendor.pagination.site') }}
-    @else
-        <div class="empty-state">
-            <span class="empty-state__code">0</span>
-            <h2>В этой категории пока пусто</h2>
-            <p>Статьи появятся здесь после публикации журналистом.</p>
-            <a class="btn btn--primary" href="{{ route('categories.index') }}">Другие категории</a>
-        </div>
-    @endif
+    {{ $texts->links('vendor.pagination.site') }} {{-- Выводим кнопки страниц. --}}
 @endsection

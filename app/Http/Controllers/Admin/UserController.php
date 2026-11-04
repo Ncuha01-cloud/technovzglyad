@@ -12,13 +12,13 @@ use Illuminate\View\View;
 class UserController extends Controller
 {
     /**
-     * Список пользователей и форма смены роли.
+     * Показывает пользователей и форму смены роли.
      */
     public function index(): View
     {
-        return view('admin.users.index', [
+        return view('admin.users.index', [ // Открываем шаблон пользователей.
             'users' => User::query()->with('role')->orderBy('login')->paginate(15), // По 15 пользователей.
-            'roles' => Role::query()->orderBy('id')->get(), // Все доступные роли.
+            'roles' => Role::query()->orderBy('id')->get(), // Все роли для выпадающего списка.
         ]);
     }
 
@@ -27,21 +27,20 @@ class UserController extends Controller
      */
     public function updateRole(Request $request, User $user): RedirectResponse
     {
-        $data = $request->validate([
-            'role_id' => ['required', 'integer', 'exists:roles,id'], // Роль должна существовать.
+        $data = $request->validate([ // Проверяем выбранную роль.
+            'role_id' => ['required', 'integer', 'exists:roles,id'], // Роль должна быть в базе.
         ], [
-            'role_id.required' => 'Выберите роль.',
-            'role_id.exists' => 'Такой роли не существует.',
+            'role_id.required' => 'Выберите роль.', // Русское сообщение об ошибке.
+            'role_id.exists' => 'Такой роли не существует.', // Русское сообщение об ошибке.
         ]);
 
-        $newRole = Role::query()->findOrFail($data['role_id']);
+        $newRole = Role::query()->findOrFail($data['role_id']); // Находим роль по id.
 
-        // Защита от случайной потери доступа: админ не может снять роль с себя.
-        if ($user->id === $request->user()->id && $newRole->name !== Role::ADMIN) {
+        if ($user->id === $request->user()->id && $newRole->name !== Role::ADMIN) { // Админ не может снять роль с себя.
             return back()->with('error', 'Нельзя снять роль администратора с самого себя.');
         }
 
-        $user->update([
+        $user->update([ // Сохраняем новую роль.
             'role_id' => $newRole->id,
         ]);
 

@@ -2,38 +2,38 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name'])]
 class Role extends Model
 {
-    use HasFactory;
+    use HasFactory; // Подключаем фабрики для тестов.
 
-    public const ADMIN = 'admin'; // Константа для роли администратора.
-    public const JOURNALIST = 'journalist'; // Константа для роли журналиста.
-    public const USER = 'user'; // Константа для роли обычного читателя.
+    protected $fillable = ['name']; // Поля, которые можно заполнять.
+
+    public const ADMIN = 'admin'; // Роль администратора.
+    public const JOURNALIST = 'journalist'; // Роль журналиста.
+    public const USER = 'user'; // Роль читателя.
 
     /**
-     * Пользователи, которым назначена эта роль.
+     * Пользователи с этой ролью.
      */
     public function users(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class); // У одной роли много пользователей.
     }
 
     /**
-     * Человекопонятное название роли для интерфейса.
+     * Русское название роли.
      */
     public function getLabelAttribute(): string
     {
-        return match ($this->name) {
-            self::ADMIN => 'Администратор',
-            self::JOURNALIST => 'Журналист',
-            self::USER => 'Читатель',
-            default => $this->name,
+        return match ($this->name) { // Выбираем название по коду роли.
+            self::ADMIN => 'Администратор', // Для admin.
+            self::JOURNALIST => 'Журналист', // Для journalist.
+            self::USER => 'Читатель', // Для user.
+            default => $this->name, // Если роль неизвестна.
         };
     }
 }

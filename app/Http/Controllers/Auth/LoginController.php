@@ -16,7 +16,7 @@ class LoginController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login');
+        return view('auth.login'); // Открываем шаблон формы входа.
     }
 
     /**
@@ -24,40 +24,38 @@ class LoginController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
+        $credentials = $request->validate([ // Проверяем поля формы.
             'login' => ['required', 'string'], // Логин обязателен.
             'password' => ['required', 'string'], // Пароль обязателен.
         ], [
-            'login.required' => 'Введите логин.',
-            'password.required' => 'Введите пароль.',
+            'login.required' => 'Введите логин.', // Русское сообщение об ошибке.
+            'password.required' => 'Введите пароль.', // Русское сообщение об ошибке.
         ]);
 
-        // Второй аргумент — галочка «запомнить меня».
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            throw ValidationException::withMessages([
-                'login' => 'Неверный логин или пароль.',
+        if (! Auth::attempt($credentials)) { // Пытаемся войти с этими данными.
+            throw ValidationException::withMessages([ // Если не получилось...
+                'login' => 'Неверный логин или пароль.', // ...показываем ошибку.
             ]);
         }
 
-        // Защита от фиксации сессии: создаём новый идентификатор после входа.
-        $request->session()->regenerate();
+        $request->session()->regenerate(); // Обновляем сессию после входа.
 
-        return redirect()
+        return redirect() // Переходим на главную страницу.
             ->intended(route('home'))
-            ->with('success', 'Вы успешно вошли в аккаунт.');
+            ->with('success', 'Вы успешно вошли в аккаунт.'); // Показываем сообщение.
     }
 
     /**
-     * Выполняет выход и очищает сессию.
+     * Выполняет выход из аккаунта.
      */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::logout(); // Убираем авторизацию.
-        $request->session()->invalidate(); // Уничтожаем старые данные сессии.
+        $request->session()->invalidate(); // Удаляем старые данные сессии.
         $request->session()->regenerateToken(); // Обновляем CSRF-токен.
 
-        return redirect()
+        return redirect() // Возвращаемся на главную.
             ->route('home')
-            ->with('success', 'Вы вышли из аккаунта.');
+            ->with('success', 'Вы вышли из аккаунта.'); // Показываем сообщение.
     }
 }

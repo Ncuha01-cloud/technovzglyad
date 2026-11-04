@@ -7,25 +7,24 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreTextRequest extends FormRequest
 {
     /**
-     * Права проверяет middleware ролей, поэтому здесь разрешаем запрос.
+     * Доступ уже проверен middleware ролей.
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Разрешаем запрос.
     }
 
     /**
-     * Правила валидации новой статьи.
+     * Правила проверки новой статьи.
      *
      * @return array<string, array<int, string>>
      */
     public function rules(): array
     {
         return [
-            'heading' => ['required', 'string', 'min:5', 'max:255'], // Заголовок обязателен.
+            'heading' => ['required', 'string', 'min:5', 'max:255'], // Заголовок от 5 до 255 символов.
             'category_id' => ['required', 'integer', 'exists:categories,id'], // Категория должна существовать.
-            'text' => ['required', 'string', 'min:80'], // Полный текст не короче 80 символов.
-            'is_published' => ['sometimes', 'boolean'], // Флаг публикации (0 или 1).
+            'text' => ['required', 'string', 'min:80'], // Текст не короче 80 символов.
         ];
     }
 
@@ -37,13 +36,13 @@ class StoreTextRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'heading.required' => 'Введите заголовок статьи.',
-            'heading.min' => 'Заголовок должен содержать минимум 5 символов.',
-            'heading.max' => 'Заголовок не должен превышать 255 символов.',
-            'category_id.required' => 'Выберите категорию.',
-            'category_id.exists' => 'Выбранной категории не существует.',
-            'text.required' => 'Введите текст статьи.',
-            'text.min' => 'Текст статьи должен содержать минимум 80 символов.',
+            'heading.required' => 'Введите заголовок статьи.', // Заголовок не заполнен.
+            'heading.min' => 'Заголовок должен содержать минимум 5 символов.', // Заголовок слишком короткий.
+            'heading.max' => 'Заголовок не должен превышать 255 символов.', // Заголовок слишком длинный.
+            'category_id.required' => 'Выберите категорию.', // Категория не выбрана.
+            'category_id.exists' => 'Выбранной категории не существует.', // Категории нет в базе.
+            'text.required' => 'Введите текст статьи.', // Текст не заполнен.
+            'text.min' => 'Текст статьи должен содержать минимум 80 символов.', // Текст слишком короткий.
         ];
     }
 }

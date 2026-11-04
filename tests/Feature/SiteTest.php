@@ -11,16 +11,16 @@ use Tests\TestCase;
 
 class SiteTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase; // Перед каждым тестом создаём чистую базу.
 
     /**
-     * Перед каждым тестом заполняем базу демо-данными.
+     * Заполняем базу демо-данными.
      */
     protected function setUp(): void
     {
-        parent::setUp();
+        parent::setUp(); // Выполняем стандартную подготовку Laravel.
 
-        $this->seed();
+        $this->seed(); // Запускаем сидеры.
     }
 
     /**
@@ -28,49 +28,47 @@ class SiteTest extends TestCase
      */
     private function userWithRole(string $roleName): User
     {
-        $role = Role::query()->where('name', $roleName)->firstOrFail();
+        $role = Role::query()->where('name', $roleName)->firstOrFail(); // Находим роль.
 
-        return User::factory()->create([
-            'role_id' => $role->id,
+        return User::factory()->create([ // Создаём пользователя.
+            'role_id' => $role->id, // Назначаем найденную роль.
         ]);
     }
 
     /**
-     * Главная страница доступна гостю и показывает опубликованные статьи.
+     * Главная страница доступна гостю и показывает статьи.
      */
-    public function test_home_page_shows_published_articles(): void
+    public function test_home_page_shows_articles(): void
     {
-        $response = $this->get(route('home'));
+        $response = $this->get(route('home')); // Открываем главную страницу.
 
-        $response->assertOk();
-        $response->assertSee('Нейросети научились проектировать лекарства быстрее человека');
-        $response->assertSee('Последние новости');
+        $response->assertOk(); // Проверяем успешный ответ.
+        $response->assertSee('Нейросети научились проектировать лекарства быстрее человека'); // Видим статью.
+        $response->assertSee('Последние новости'); // Видим заголовок страницы.
     }
 
     /**
-     * Черновик и заблокированная статья недоступны гостю.
+     * Заблокированная статья недоступна гостю.
      */
-    public function test_hidden_articles_are_not_available_to_guests(): void
+    public function test_blocked_article_is_not_available_to_guests(): void
     {
-        $draft = Text::query()->where('is_published', false)->firstOrFail();
-        $blocked = Text::query()->where('is_blocked', true)->firstOrFail();
+        $blocked = Text::query()->where('is_blocked', true)->firstOrFail(); // Находим заблокированную статью.
 
-        $this->get(route('articles.show', $draft))->assertNotFound();
-        $this->get(route('articles.show', $blocked))->assertNotFound();
+        $this->get(route('articles.show', $blocked))->assertNotFound(); // Гость получает 404.
     }
 
     /**
-     * Администратор может просматривать скрытые статьи.
+     * Администратор может просматривать заблокированную статью.
      */
-    public function test_admin_can_view_hidden_articles(): void
+    public function test_admin_can_view_blocked_article(): void
     {
-        $admin = $this->userWithRole(Role::ADMIN);
-        $draft = Text::query()->where('is_published', false)->firstOrFail();
+        $admin = $this->userWithRole(Role::ADMIN); // Создаём администратора.
+        $blocked = Text::query()->where('is_blocked', true)->firstOrFail(); // Находим заблокированную статью.
 
-        $this->actingAs($admin)
-            ->get(route('articles.show', $draft))
-            ->assertOk()
-            ->assertSee('Черновик');
+        $this->actingAs($admin) // Входим как администратор.
+            ->get(route('articles.show', $blocked))
+            ->assertOk() // Страница открывается.
+            ->assertSee('Статья заблокирована администратором.'); // Видим предупреждение.
     }
 
     /**
@@ -78,13 +76,13 @@ class SiteTest extends TestCase
      */
     public function test_category_page_shows_only_its_articles(): void
     {
-        $category = Category::query()->where('slug', 'space')->firstOrFail();
+        $category = Category::query()->where('slug', 'space')->firstOrFail(); // Берём категорию «Космос».
 
-        $response = $this->get(route('categories.show', $category));
+        $response = $this->get(route('categories.show', $category)); // Открываем страницу категории.
 
-        $response->assertOk();
-        $response->assertSee('Телескоп «Джеймс Уэбб» показал атмосферу экзопланеты');
-        $response->assertDontSee('Нейросети научились проектировать лекарства быстрее человека');
+        $response->assertOk(); // Проверяем успешный ответ.
+        $response->assertSee('Телескоп «Джеймс Уэбб» показал атмосферу экзопланеты'); // Видим статью категории.
+        $response->assertDontSee('Нейросети научились проектировать лекарства быстрее человека'); // Чужой статьи нет.
     }
 
     /**
@@ -92,8 +90,8 @@ class SiteTest extends TestCase
      */
     public function test_guest_is_redirected_from_journalist_section(): void
     {
-        $this->get(route('journalist.index'))
-            ->assertRedirect(route('login'));
+        $this->get(route('journalist.index')) // Гость открывает кабинет.
+            ->assertRedirect(route('login')); // Его отправляют на вход.
     }
 
     /**
@@ -101,58 +99,54 @@ class SiteTest extends TestCase
      */
     public function test_reader_cannot_access_journalist_and_admin_sections(): void
     {
-        $reader = $this->userWithRole(Role::USER);
+        $reader = $this->userWithRole(Role::USER); // Создаём читателя.
 
-        $this->actingAs($reader)->get(route('journalist.index'))->assertForbidden();
-        $this->actingAs($reader)->get(route('admin.dashboard'))->assertForbidden();
+        $this->actingAs($reader)->get(route('journalist.index'))->assertForbidden(); // Кабинет запрещён.
+        $this->actingAs($reader)->get(route('admin.dashboard'))->assertForbidden(); // Админка запрещена.
     }
 
     /**
-     * Журналист может писать статьи, но не может открыть админку.
+     * Журналист может создать статью, но не может открыть админку.
      */
     public function test_journalist_can_create_article_but_cannot_open_admin(): void
     {
-        $journalist = $this->userWithRole(Role::JOURNALIST);
-        $category = Category::query()->firstOrFail();
+        $journalist = $this->userWithRole(Role::JOURNALIST); // Создаём журналиста.
+        $category = Category::query()->firstOrFail(); // Берём первую категорию.
 
-        $response = $this->actingAs($journalist)->post(route('journalist.articles.store'), [
-            'heading' => 'Тестовая статья о Laravel',
-            'category_id' => $category->id,
-            'text' => str_repeat('Это достаточно длинный текст для проверки валидации. ', 4),
-            'is_published' => '1',
+        $response = $this->actingAs($journalist)->post(route('journalist.articles.store'), [ // Отправляем форму.
+            'heading' => 'Тестовая статья о Laravel', // Заголовок.
+            'category_id' => $category->id, // Категория.
+            'text' => str_repeat('Это достаточно длинный текст для проверки валидации. ', 4), // Текст.
         ]);
 
-        $response->assertRedirect(route('journalist.index'));
+        $response->assertRedirect(route('journalist.index')); // Возврат в кабинет.
 
-        $this->assertDatabaseHas('texts', [
+        $this->assertDatabaseHas('texts', [ // Проверяем запись в базе.
             'heading' => 'Тестовая статья о Laravel',
             'user_id' => $journalist->id,
-            'is_published' => true,
         ]);
 
-        $this->get(route('home'))->assertSee('Тестовая статья о Laravel');
-        $this->actingAs($journalist)->get(route('admin.dashboard'))->assertForbidden();
+        $this->get(route('home'))->assertSee('Тестовая статья о Laravel'); // Статья видна на главной.
+        $this->actingAs($journalist)->get(route('admin.dashboard'))->assertForbidden(); // Админка запрещена.
     }
 
     /**
-     * Администратор может заблокировать статью, и она исчезает с сайта.
+     * Администратор может заблокировать статью.
      */
     public function test_admin_can_block_article(): void
     {
-        $admin = $this->userWithRole(Role::ADMIN);
-        $text = Text::query()->published()->firstOrFail();
+        $admin = $this->userWithRole(Role::ADMIN); // Создаём администратора.
+        $text = Text::query()->where('is_blocked', false)->firstOrFail(); // Берём видимую статью.
 
-        $this->actingAs($admin)
+        $this->actingAs($admin) // Входим как администратор.
             ->post(route('admin.articles.block', $text))
-            ->assertRedirect();
+            ->assertRedirect(); // Проверяем возврат.
 
-        $this->assertTrue($text->fresh()->is_blocked);
+        $this->assertTrue($text->fresh()->is_blocked); // Статья стала заблокированной.
 
-        // Выходим из аккаунта администратора, чтобы проверить сайт глазами гостя.
-        $this->post(route('logout'));
+        $this->post(route('logout')); // Выходим из аккаунта.
 
-        // Гость больше не может открыть заблокированную статью.
-        $this->get(route('articles.show', $text))->assertNotFound();
+        $this->get(route('articles.show', $text))->assertNotFound(); // Гость получает 404.
     }
 
     /**
@@ -160,34 +154,34 @@ class SiteTest extends TestCase
      */
     public function test_admin_can_change_user_role(): void
     {
-        $admin = $this->userWithRole(Role::ADMIN);
-        $reader = $this->userWithRole(Role::USER);
-        $journalistRole = Role::query()->where('name', Role::JOURNALIST)->firstOrFail();
+        $admin = $this->userWithRole(Role::ADMIN); // Создаём администратора.
+        $reader = $this->userWithRole(Role::USER); // Создаём читателя.
+        $journalistRole = Role::query()->where('name', Role::JOURNALIST)->firstOrFail(); // Находим роль журналиста.
 
-        $this->actingAs($admin)
+        $this->actingAs($admin) // Входим как администратор.
             ->put(route('admin.users.role', $reader), [
-                'role_id' => $journalistRole->id,
+                'role_id' => $journalistRole->id, // Новая роль.
             ])
-            ->assertRedirect();
+            ->assertRedirect(); // Проверяем возврат.
 
-        $this->assertSame($journalistRole->id, $reader->fresh()->role_id);
+        $this->assertSame($journalistRole->id, $reader->fresh()->role_id); // Роль изменилась.
     }
 
     /**
-     * Администратор не может снять роль администратора с самого себя.
+     * Администратор не может снять роль с самого себя.
      */
     public function test_admin_cannot_demote_himself(): void
     {
-        $admin = $this->userWithRole(Role::ADMIN);
-        $readerRole = Role::query()->where('name', Role::USER)->firstOrFail();
+        $admin = $this->userWithRole(Role::ADMIN); // Создаём администратора.
+        $readerRole = Role::query()->where('name', Role::USER)->firstOrFail(); // Находим роль читателя.
 
-        $this->actingAs($admin)
+        $this->actingAs($admin) // Входим как администратор.
             ->put(route('admin.users.role', $admin), [
-                'role_id' => $readerRole->id,
+                'role_id' => $readerRole->id, // Пытаемся сменить роль.
             ])
-            ->assertSessionHas('error');
+            ->assertSessionHas('error'); // Получаем сообщение об ошибке.
 
-        $this->assertSame(Role::ADMIN, $admin->fresh()->role->name);
+        $this->assertSame(Role::ADMIN, $admin->fresh()->role->name); // Роль осталась прежней.
     }
 
     /**
@@ -195,19 +189,19 @@ class SiteTest extends TestCase
      */
     public function test_registration_creates_reader_and_logs_in(): void
     {
-        $response = $this->post(route('register.store'), [
-            'login' => 'newreader',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+        $response = $this->post(route('register.store'), [ // Отправляем форму регистрации.
+            'login' => 'newreader', // Новый логин.
+            'password' => 'password123', // Пароль.
+            'password_confirmation' => 'password123', // Повтор пароля.
         ]);
 
-        $response->assertRedirect(route('home'));
+        $response->assertRedirect(route('home')); // Возврат на главную.
 
-        $this->assertAuthenticated();
+        $this->assertAuthenticated(); // Пользователь вошёл.
 
-        $user = User::query()->where('login', 'newreader')->firstOrFail();
+        $user = User::query()->where('login', 'newreader')->firstOrFail(); // Находим пользователя.
 
-        $this->assertSame(Role::USER, $user->role->name);
+        $this->assertSame(Role::USER, $user->role->name); // Роль читателя.
     }
 
     /**
@@ -215,15 +209,15 @@ class SiteTest extends TestCase
      */
     public function test_user_can_login_with_login_and_password(): void
     {
-        $reader = $this->userWithRole(Role::USER);
+        $reader = $this->userWithRole(Role::USER); // Создаём читателя.
 
-        $response = $this->post(route('login.store'), [
-            'login' => $reader->login,
-            'password' => 'password',
+        $response = $this->post(route('login.store'), [ // Отправляем форму входа.
+            'login' => $reader->login, // Логин.
+            'password' => 'password', // Пароль фабрики.
         ]);
 
-        $response->assertRedirect(route('home'));
-        $this->assertAuthenticatedAs($reader);
+        $response->assertRedirect(route('home')); // Возврат на главную.
+        $this->assertAuthenticatedAs($reader); // Пользователь вошёл.
     }
 
     /**
@@ -231,17 +225,17 @@ class SiteTest extends TestCase
      */
     public function test_login_fails_with_wrong_password(): void
     {
-        $reader = $this->userWithRole(Role::USER);
+        $reader = $this->userWithRole(Role::USER); // Создаём читателя.
 
-        $this->from(route('login'))
+        $this->from(route('login')) // Запоминаем страницу входа.
             ->post(route('login.store'), [
-                'login' => $reader->login,
-                'password' => 'wrong-password',
+                'login' => $reader->login, // Логин.
+                'password' => 'wrong-password', // Неверный пароль.
             ])
-            ->assertRedirect(route('login'))
-            ->assertSessionHasErrors('login');
+            ->assertRedirect(route('login')) // Возврат на форму.
+            ->assertSessionHasErrors('login'); // Есть ошибка.
 
-        $this->assertGuest();
+        $this->assertGuest(); // Пользователь не вошёл.
     }
 
     /**
@@ -249,12 +243,12 @@ class SiteTest extends TestCase
      */
     public function test_user_can_logout(): void
     {
-        $reader = $this->userWithRole(Role::USER);
+        $reader = $this->userWithRole(Role::USER); // Создаём читателя.
 
-        $this->actingAs($reader)
+        $this->actingAs($reader) // Входим как читатель.
             ->post(route('logout'))
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('home')); // Возврат на главную.
 
-        $this->assertGuest();
+        $this->assertGuest(); // Пользователь вышел.
     }
 }

@@ -17,31 +17,31 @@ class RegisterController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        return view('auth.register'); // Открываем шаблон регистрации.
     }
 
     /**
-     * Создаёт пользователя с ролью «Читатель» и сразу авторизует его.
+     * Создаёт читателя и сразу авторизует его.
      */
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate([
+        $data = $request->validate([ // Проверяем данные формы.
             'login' => [
                 'required', // Поле обязательно.
-                'string', // Должно быть строкой.
+                'string', // Значение должно быть строкой.
                 'min:3', // Минимум 3 символа.
                 'max:50', // Максимум 50 символов.
                 'regex:/^[A-Za-z0-9_]+$/', // Только латиница, цифры и подчёркивание.
-                'unique:users,login', // Логин должен быть уникальным.
+                'unique:users,login', // Логин не должен повторяться.
             ],
             'password' => [
                 'required', // Пароль обязателен.
-                'string', // Должен быть строкой.
+                'string', // Значение должно быть строкой.
                 'min:8', // Минимум 8 символов.
-                'confirmed', // Должен совпадать с password_confirmation.
+                'confirmed', // Пароль должен совпасть с подтверждением.
             ],
         ], [
-            'login.required' => 'Придумайте логин.',
+            'login.required' => 'Придумайте логин.', // Русские сообщения об ошибках.
             'login.min' => 'Логин должен содержать минимум 3 символа.',
             'login.max' => 'Логин не должен превышать 50 символов.',
             'login.regex' => 'Логин может содержать только латинские буквы, цифры и подчёркивание.',
@@ -51,20 +51,21 @@ class RegisterController extends Controller
             'password.confirmed' => 'Пароли не совпадают.',
         ]);
 
-        // Новые пользователи всегда получают роль обычного читателя.
-        $readerRole = Role::query()->firstOrCreate(['name' => Role::USER]);
-
-        $user = User::query()->create([
-            'login' => $data['login'], // Логин из формы.
-            'password' => $data['password'], // Пароль хешируется кастом модели User.
-            'role_id' => $readerRole->id, // Назначаем роль «Читатель».
+        $readerRole = Role::query()->firstOrCreate([ // Ищем роль читателя.
+            'name' => Role::USER,
         ]);
 
-        Auth::login($user); // Автоматический вход после регистрации.
-        $request->session()->regenerate(); // Защита от фиксации сессии.
+        $user = User::query()->create([ // Создаём нового пользователя.
+            'login' => $data['login'], // Логин из формы.
+            'password' => $data['password'], // Пароль (модель User его хеширует).
+            'role_id' => $readerRole->id, // Назначаем роль читателя.
+        ]);
 
-        return redirect()
+        Auth::login($user); // Сразу входим под новым пользователем.
+        $request->session()->regenerate(); // Обновляем сессию.
+
+        return redirect() // Переходим на главную.
             ->route('home')
-            ->with('success', 'Регистрация прошла успешно. Добро пожаловать!');
+            ->with('success', 'Регистрация прошла успешно. Добро пожаловать!'); // Показываем сообщение.
     }
 }

@@ -7,72 +7,49 @@ use App\Http\Requests\Admin\AdminUpdateTextRequest;
 use App\Models\Category;
 use App\Models\Text;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ArticleController extends Controller
 {
     /**
-     * Список всех статей с поиском и фильтром по статусу.
+     * Показывает все статьи сайта.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
-        $query = Text::query()
-            ->with(['category', 'author']) // Связи для таблицы.
-            ->latest(); // Новые статьи выше.
+        $texts = Text::query() // Начинаем запрос к таблице texts.
+            ->with(['category', 'author']) // Загружаем категорию и автора.
+            ->latest() // Сортируем от новых к старым.
+            ->paginate(10); // По 10 статей на странице.
 
-        $search = trim((string) $request->input('q'));
-
-        if ($search !== '') {
-            // Поиск по заголовку и тексту статьи.
-            $query->where(function ($builder) use ($search) {
-                $builder
-                    ->where('heading', 'like', '%'.$search.'%')
-                    ->orWhere('text', 'like', '%'.$search.'%');
-            });
-        }
-
-        $status = (string) $request->input('status');
-
-        match ($status) {
-            'published' => $query->where('is_published', true)->where('is_blocked', false),
-            'blocked' => $query->where('is_blocked', true),
-            'draft' => $query->where('is_published', false),
-            default => null, // Без фильтра показываем всё.
-        };
-
-        return view('admin.articles.index', [
-            'texts' => $query->paginate(10)->withQueryString(), // Сохраняем параметры поиска в ссылках.
-            'search' => $search,
-            'status' => $status,
+        return view('admin.articles.index', [ // Открываем шаблон списка статей.
+            'texts' => $texts, // Передаём статьи в шаблон.
         ]);
     }
 
     /**
-     * Форма редактирования статьи администратором.
+     * Показывает форму редактирования статьи.
      */
     public function edit(Text $text): View
     {
-        return view('admin.articles.edit', [
-            'text' => $text,
-            'categories' => Category::query()->orderBy('name')->get(),
+        return view('admin.articles.edit', [ // Открываем шаблон редактирования.
+            'text' => $text, // Редактируемая статья.
+            'categories' => Category::query()->orderBy('name')->get(), // Список категорий.
         ]);
     }
 
     /**
-     * Сохраняет изменения статьи, включая статусы публикации и блокировки.
+     * Сохраняет изменения статьи.
      */
     public function update(AdminUpdateTextRequest $request, Text $text): RedirectResponse
     {
-        $data = $request->validated();
-        $data['is_published'] = $request->boolean('is_published'); // Чекбокс публикации.
-        $data['is_blocked'] = $request->boolean('is_blocked'); // Чекбокс блокировки.
+        $data = $request->validated(); // Берём проверенные поля.
+        $data['is_blocked'] = $request->boolean('is_blocked'); // Превращаем чекбокс в true/false.
 
-        $text->update($data);
+        $text->update($data); // Сохраняем изменения в базе.
 
-        return redirect()
+        return redirect() // Возвращаемся к списку статей.
             ->route('admin.articles.index')
-            ->with('success', 'Статья «'.$text->heading.'» обновлена.');
+            ->with('success', 'Статья «'.$text->heading.'» обновлена.'); // Показываем сообщение.
     }
 
     /**
@@ -80,27 +57,27 @@ class ArticleController extends Controller
      */
     public function destroy(Text $text): RedirectResponse
     {
-        $heading = $text->heading; // Запоминаем заголовок до удаления.
-        $text->delete();
+        $heading = $text->heading; // Запоминаем заголовок для сообщения.
+        $text->delete(); // Удаляем статью из базы.
 
-        return redirect()
+        return redirect() // Возвращаемся к списку статей.
             ->route('admin.articles.index')
-            ->with('success', 'Статья «'.$heading.'» удалена.');
+            ->with('success', 'Статья «'.$heading.'» удалена.'); // Показываем сообщение.
     }
 
     /**
-     * Быстро блокирует или разблокирует статью.
+     * Блокирует или разблокирует статью.
      */
     public function toggleBlock(Text $text): RedirectResponse
     {
-        $text->update([
-            'is_blocked' => ! $text->is_blocked, // Инвертируем текущее значение.
+        $text->update([ // Обновляем только одно поле.
+            'is_blocked' => ! $text->is_blocked, // Меняем значение на противоположное.
         ]);
 
-        $message = $text->is_blocked
-            ? 'Статья «'.$text->heading.'» заблокирована.'
-            : 'Статья «'.$text->heading.'» разблокирована.';
+        $message = $text->is_blocked // Проверяем новое состояние.
+            ? 'Статья заблокирована.' // Если true — сообщение о блокировке.
+            : 'Статья разблокирована.'; // Если false — сообщение о разблокировке.
 
-        return back()->with('success', $message);
+        return back()->with('success', $message); // Возвращаемся на ту же страницу.
     }
 }

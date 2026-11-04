@@ -3,80 +3,72 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['login', 'password', 'role_id'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable; // Фабрики и уведомления.
+
+    protected $fillable = ['login', 'password', 'role_id']; // Поля, которые можно заполнять.
+
+    protected $hidden = ['password', 'remember_token']; // Скрываем пароль при выводе.
+
+    protected $casts = [
+        'password' => 'hashed', // Пароль автоматически хешируется.
+    ];
 
     /**
-     * Приведение типов: пароль автоматически хешируется при сохранении.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'password' => 'hashed',
-        ];
-    }
-
-    /**
-     * Роль пользователя (связь многие-к-одному).
+     * Роль пользователя.
      */
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class); // У пользователя одна роль.
     }
 
     /**
-     * Статьи, написанные пользователем.
+     * Статьи пользователя.
      */
     public function texts(): HasMany
     {
-        return $this->hasMany(Text::class);
+        return $this->hasMany(Text::class); // У пользователя много статей.
     }
 
     /**
-     * Является ли пользователь администратором.
+     * Проверяет, является ли пользователь администратором.
      */
     public function isAdmin(): bool
     {
-        return $this->role?->name === Role::ADMIN;
+        return $this->role?->name === Role::ADMIN; // Сравниваем название роли.
     }
 
     /**
-     * Является ли пользователь журналистом.
+     * Проверяет, является ли пользователь журналистом.
      */
     public function isJournalist(): bool
     {
-        return $this->role?->name === Role::JOURNALIST;
+        return $this->role?->name === Role::JOURNALIST; // Сравниваем название роли.
     }
 
     /**
-     * Является ли пользователь обычным читателем.
+     * Проверяет, является ли пользователь читателем.
      */
     public function isReader(): bool
     {
-        return $this->role?->name === Role::USER;
+        return $this->role?->name === Role::USER; // Сравниваем название роли.
     }
 
     /**
-     * Проверяет, входит ли роль пользователя в переданный список.
+     * Проверяет, входит ли роль в список разрешённых.
      *
      * @param  array<int, string>  $roles
      */
     public function hasAnyRole(array $roles): bool
     {
-        return in_array($this->role?->name, $roles, true);
+        return in_array($this->role?->name, $roles, true); // Ищем роль в массиве.
     }
 }

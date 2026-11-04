@@ -1,67 +1,42 @@
-@extends('layouts.app')
+@extends('layouts.app') {{-- Используем общий каркас сайта. --}}
 
-@section('title', 'Кабинет журналиста')
+@section('title', 'Кабинет журналиста') {{-- Заголовок вкладки. --}}
 
 @section('content')
-    <div class="page-heading page-heading--row">
-        <div>
-            <span class="eyebrow">Кабинет автора</span>
-            <h1 class="page-heading__title">
-                {{ auth()->user()->isAdmin() ? 'Все статьи' : 'Мои статьи' }}
-            </h1>
-            <p class="page-heading__text">
-                Всего материалов: {{ $texts->total() }}. Черновики и заблокированные статьи не видны читателям.
-            </p>
-        </div>
-
-        <a class="btn btn--primary" href="{{ route('journalist.articles.create') }}">+ Новая статья</a>
+    <div class="page-head"> {{-- Заголовок страницы и кнопка. --}}
+        <h1>{{ auth()->user()->isAdmin() ? 'Все статьи' : 'Мои статьи' }}</h1> {{-- Админ видит все статьи. --}}
+        <a class="btn btn-primary" href="{{ route('journalist.articles.create') }}">Новая статья</a> {{-- Кнопка создания. --}}
     </div>
 
-    @if ($texts->count())
-        <div class="table-wrap">
-            <table class="table table--articles">
+    @if ($texts->count()) {{-- Проверяем, есть ли статьи. --}}
+        <div class="table-wrap"> {{-- Обёртка для прокрутки таблицы. --}}
+            <table class="table"> {{-- Таблица статей. --}}
                 <thead>
                     <tr>
-                        <th>Заголовок</th>
-                        <th>Категория</th>
-                        <th>Статус</th>
-                        <th>Дата</th>
-                        <th class="table__actions">Действия</th>
+                        <th>Заголовок</th> {{-- Название столбца. --}}
+                        <th>Категория</th> {{-- Название столбца. --}}
+                        <th>Статус</th> {{-- Название столбца. --}}
+                        <th>Действия</th> {{-- Название столбца. --}}
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($texts as $text)
+                    @foreach ($texts as $text) {{-- Перебираем статьи. --}}
                         <tr>
+                            <td><a href="{{ route('articles.show', $text) }}">{{ $text->heading }}</a></td> {{-- Ссылка на статью. --}}
+                            <td>{{ $text->category->name }}</td> {{-- Категория статьи. --}}
                             <td>
-                                <a class="table__title" href="{{ route('articles.show', $text) }}">
-                                    {{ $text->heading }}
-                                </a>
-                            </td>
-                            <td>{{ $text->category->name }}</td>
-                            <td>
-                                @if ($text->is_blocked)
-                                    <span class="badge badge--blocked">Заблокирована</span>
-                                @elseif (! $text->is_published)
-                                    <span class="badge badge--draft">Черновик</span>
+                                @if ($text->is_blocked) {{-- Проверяем блокировку. --}}
+                                    Заблокирована
                                 @else
-                                    <span class="badge badge--published">Опубликована</span>
+                                    Опубликована
                                 @endif
                             </td>
-                            <td>{{ $text->created_at->format('d.m.Y') }}</td>
-                            <td class="table__actions">
-                                <a class="btn btn--ghost btn--small" href="{{ route('journalist.articles.edit', $text) }}">
-                                    Редактировать
-                                </a>
-
-                                <form
-                                    class="inline-form"
-                                    action="{{ route('journalist.articles.destroy', $text) }}"
-                                    method="POST"
-                                    onsubmit="return confirm('Удалить эту статью?')"
-                                >
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn--danger btn--small" type="submit">Удалить</button>
+                            <td>
+                                <a class="btn btn-small" href="{{ route('journalist.articles.edit', $text) }}">Изменить</a> {{-- Кнопка редактирования. --}}
+                                <form class="inline" action="{{ route('journalist.articles.destroy', $text) }}" method="POST" onsubmit="return confirm('Удалить статью?')"> {{-- Форма удаления. --}}
+                                    @csrf {{-- Защита формы. --}}
+                                    @method('DELETE') {{-- Laravel поймёт метод DELETE. --}}
+                                    <button class="btn btn-small btn-danger" type="submit">Удалить</button> {{-- Кнопка удаления. --}}
                                 </form>
                             </td>
                         </tr>
@@ -70,13 +45,8 @@
             </table>
         </div>
 
-        {{ $texts->links('vendor.pagination.site') }}
+        {{ $texts->links('vendor.pagination.site') }} {{-- Выводим кнопки страниц. --}}
     @else
-        <div class="empty-state">
-            <span class="empty-state__code">0</span>
-            <h2>У вас пока нет статей</h2>
-            <p>Создайте первый материал — он появится на главной и в выбранной категории.</p>
-            <a class="btn btn--primary" href="{{ route('journalist.articles.create') }}">Написать статью</a>
-        </div>
+        <p>У вас пока нет статей.</p> {{-- Сообщение для пустого списка. --}}
     @endif
 @endsection
