@@ -1,38 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Настройки PHPUnit для проекта «ТехноВзгляд».
+    Изменено: тесты работают с PostgreSQL (база news_site_testing),
+    а не с SQLite. Рабочая база news_site при тестах не затрагивается.
+-->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
 >
+    <!-- Список наборов тестов. -->
     <testsuites>
+        <!-- Модульные тесты без базы данных. -->
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <!-- Функциональные тесты сайта. -->
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+
+    <!-- Какие файлы учитывать при подсчёте покрытия кода. -->
     <source>
         <include>
             <directory>app</directory>
         </include>
     </source>
+
+    <!-- Переменные окружения только для тестов. -->
     <php>
+        <!-- Режим testing отключает кеширование конфигов. -->
         <env name="APP_ENV" value="testing"/>
+        <!-- Режим обслуживания хранится в файле. -->
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <!-- Быстрое хеширование паролей в тестах. -->
         <env name="BCRYPT_ROUNDS" value="4"/>
+        <!-- События не транслируются. -->
         <env name="BROADCAST_CONNECTION" value="null"/>
+        <!-- Кеш в памяти, чтобы не чистить таблицу cache. -->
         <env name="CACHE_STORE" value="array"/>
+        <!-- Тестовая база PostgreSQL. -->
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="5432"/>
         <env name="DB_DATABASE" value="news_site_testing"/>
         <env name="DB_USERNAME" value="postgres"/>
         <env name="DB_PASSWORD" value="postgres"/>
+        <!-- Отключаем готовый URL, чтобы использовались поля выше. -->
         <env name="DB_URL" value=""/>
+        <!-- Письма складываются в массив. -->
         <env name="MAIL_MAILER" value="array"/>
+        <!-- Очереди выполняются сразу. -->
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <!-- Сессии в памяти. -->
         <env name="SESSION_DRIVER" value="array"/>
+        <!-- Дополнительные пакеты отключены. -->
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

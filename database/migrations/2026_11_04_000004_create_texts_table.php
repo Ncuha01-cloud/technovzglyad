@@ -1,5 +1,13 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Миграция статей (2026_11_04_000004_create_texts_table.php)
+|--------------------------------------------------------------------------
+| Создаёт таблицу texts со связями на категорию и автора.
+| Изменено: удалён is_published, остался только is_blocked.
+*/
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

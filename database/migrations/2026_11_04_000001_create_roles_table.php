@@ -1,5 +1,13 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Миграция ролей (2026_11_04_000001_create_roles_table.php)
+|--------------------------------------------------------------------------
+| Создаёт справочник ролей: admin, journalist, user.
+| Изменено: добавлено уникальное ограничение на имя роли.
+*/
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

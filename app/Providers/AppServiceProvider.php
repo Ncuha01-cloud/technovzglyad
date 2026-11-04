@@ -1,5 +1,13 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Основной провайдер приложения (app/Providers/AppServiceProvider.php)
+|--------------------------------------------------------------------------
+| В этом учебном проекте дополнительная настройка сервисов не нужна,
+| поэтому методы register() и boot() оставлены пустыми.
+*/
+
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
@@ -7,18 +15,20 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * Регистрация сервисов в контейнере зависимостей.
+     * Пока ничего регистрировать не нужно.
      */
     public function register(): void
     {
-        //
+        // Здесь можно было бы привязать интерфейсы к реализациям.
     }
 
     /**
-     * Bootstrap any application services.
+     * Действия после запуска приложения.
+     * Пока дополнительных действий нет.
      */
     public function boot(): void
     {
-        //
+        // Здесь можно было бы настроить Blade, модели или валидацию.
     }
 }

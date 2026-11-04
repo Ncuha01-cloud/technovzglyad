@@ -1,10 +1,20 @@
+# Файлы и папки, которые Git не должен отслеживать.
+
+# Локальные логи.
 *.log
+
+# Служебные файлы macOS.
 .DS_Store
+
+# Файлы с секретами и локальными настройками.
 .env
 .env.backup
 .env.production
-.phpactor.json
+
+# Кеш PHPUnit.
 .phpunit.result.cache
+
+# Папки редакторов и ИИ-помощников.
 /.claude
 /.codex
 /.cursor/
@@ -13,22 +23,36 @@
 /.phpunit.cache
 /.vscode
 /.zed
+
+# Файлы авторизации Composer.
 /auth.json
+
+# Зависимости Node.js и собранные файлы (Vite в проекте не используется).
 /node_modules
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+
+# Ключи и временные файлы Laravel.
 /storage/*.key
 /storage/pail
+
+# Папка зависимостей Composer.
 /vendor
+
+# Файлы IDE и виртуальных машин.
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Локальные файлы Laravel Boost (не часть учебного проекта).
 /AGENTS.md
 /CLAUDE.md
 /.mcp.json
 /boost.json
+
+# Локальные базы SQLite (проект использует PostgreSQL).
 /database/*.sqlite
 /database/*.sqlite-journal

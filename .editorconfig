@@ -1,3 +1,6 @@
+# Единые правила оформления кода для всех редакторов.
+# Файл читают VS Code, PhpStorm и другие IDE.
+
 root = true
 
 [*]
@@ -8,11 +11,14 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+# В Markdown пробелы в конце строк иногда нужны — не удаляем их.
 [*.md]
 trim_trailing_whitespace = false
 
+# Для YAML-файлов используем отступ в 2 пробела.
 [*.{yml,yaml}]
 indent_size = 2
 
+# Для docker-compose удобнее отступ в 4 пробела.
 [{compose,docker-compose}.{yml,yaml}]
 indent_size = 4

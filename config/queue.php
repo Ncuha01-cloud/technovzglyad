@@ -1,129 +1,101 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Настройки очередей (config/queue.php)
+|--------------------------------------------------------------------------
+| Очереди позволяют выполнять долгие задачи в фоне.
+| В учебном проекте фоновые задачи не используются, но стандартные
+| настройки оставлены для совместимости с Laravel.
+*/
+
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default Queue Connection Name
-    |--------------------------------------------------------------------------
-    |
-    | Laravel's queue supports a variety of backends via a single, unified
-    | API, giving you convenient access to each backend using identical
-    | syntax for each. The default queue connection is defined below.
-    |
-    */
-
+    // Подключение очереди по умолчанию.
     'default' => env('QUEUE_CONNECTION', 'database'),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Queue Connections
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the connection options for every queue backend
-    | used by your application. An example configuration is provided for
-    | each backend supported by Laravel. You're also free to add more.
-    |
-    | Drivers: "sync", "database", "beanstalkd", "sqs", "redis",
-    |          "deferred", "background", "failover", "null"
-    |
-    */
-
+    // Список доступных подключений очереди.
     'connections' => [
 
+        // Выполнение задачи сразу, без очереди.
         'sync' => [
-            'driver' => 'sync',
+            'driver' => 'sync', // Синхронный драйвер.
         ],
 
+        // Очередь в таблице базы данных.
         'database' => [
-            'driver' => 'database',
-            'connection' => env('DB_QUEUE_CONNECTION'),
-            'table' => env('DB_QUEUE_TABLE', 'jobs'),
-            'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
-            'after_commit' => false,
+            'driver' => 'database', // Драйвер «база данных».
+            'connection' => env('DB_QUEUE_CONNECTION'), // Подключение к базе.
+            'table' => env('DB_QUEUE_TABLE', 'jobs'), // Таблица задач.
+            'queue' => env('DB_QUEUE', 'default'), // Имя очереди.
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90), // Повтор через 90 секунд.
+            'after_commit' => false, // Запускать после подтверждения транзакции.
         ],
 
+        // Очередь Beanstalkd.
         'beanstalkd' => [
-            'driver' => 'beanstalkd',
-            'host' => env('BEANSTALKD_QUEUE_HOST', 'localhost'),
-            'queue' => env('BEANSTALKD_QUEUE', 'default'),
-            'retry_after' => (int) env('BEANSTALKD_QUEUE_RETRY_AFTER', 90),
-            'block_for' => 0,
-            'after_commit' => false,
+            'driver' => 'beanstalkd', // Драйвер Beanstalkd.
+            'host' => env('BEANSTALKD_QUEUE_HOST', 'localhost'), // Адрес сервера.
+            'queue' => env('BEANSTALKD_QUEUE', 'default'), // Имя очереди.
+            'retry_after' => (int) env('BEANSTALKD_QUEUE_RETRY_AFTER', 90), // Повтор через 90 секунд.
+            'block_for' => 0, // Сколько ждать задачу.
+            'after_commit' => false, // Запускать после транзакции.
         ],
 
+        // Очередь Amazon SQS.
         'sqs' => [
-            'driver' => 'sqs',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'prefix' => env('SQS_PREFIX', 'https://sqs.us-east-1.amazonaws.com/your-account-id'),
-            'queue' => env('SQS_QUEUE', 'default'),
-            'suffix' => env('SQS_SUFFIX'),
-            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-            'after_commit' => false,
+            'driver' => 'sqs', // Драйвер SQS.
+            'key' => env('AWS_ACCESS_KEY_ID'), // Ключ доступа.
+            'secret' => env('AWS_SECRET_ACCESS_KEY'), // Секретный ключ.
+            'prefix' => env('SQS_PREFIX', 'https://sqs.us-east-1.amazonaws.com/your-account-id'), // Адрес очереди.
+            'queue' => env('SQS_QUEUE', 'default'), // Имя очереди.
+            'suffix' => env('SQS_SUFFIX'), // Суффикс имени.
+            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'), // Регион.
+            'after_commit' => false, // Запускать после транзакции.
         ],
 
+        // Очередь Redis.
         'redis' => [
-            'driver' => 'redis',
-            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
-            'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
-            'block_for' => null,
-            'after_commit' => false,
+            'driver' => 'redis', // Драйвер Redis.
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'), // Подключение Redis.
+            'queue' => env('REDIS_QUEUE', 'default'), // Имя очереди.
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90), // Повтор через 90 секунд.
+            'block_for' => null, // Сколько ждать задачу.
+            'after_commit' => false, // Запускать после транзакции.
         ],
 
+        // Отложенное выполнение.
         'deferred' => [
-            'driver' => 'deferred',
+            'driver' => 'deferred', // Драйвер отложенных задач.
         ],
 
+        // Выполнение в фоне.
         'background' => [
-            'driver' => 'background',
+            'driver' => 'background', // Фоновый драйвер.
         ],
 
+        // Резервная очередь при недоступности основной.
         'failover' => [
-            'driver' => 'failover',
+            'driver' => 'failover', // Драйвер переключения.
             'connections' => [
-                'database',
-                'deferred',
+                'database', // Основная очередь.
+                'deferred', // Резервная очередь.
             ],
         ],
 
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Job Batching
-    |--------------------------------------------------------------------------
-    |
-    | The following options configure the database and table that store job
-    | batching information. These options can be updated to any database
-    | connection and table which has been defined by your application.
-    |
-    */
-
+    // Настройки пакетной обработки задач.
     'batching' => [
-        'database' => env('DB_CONNECTION', 'sqlite'),
-        'table' => 'job_batches',
+        'database' => env('DB_CONNECTION', 'sqlite'), // База для пакетов.
+        'table' => 'job_batches', // Таблица пакетов.
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Failed Queue Jobs
-    |--------------------------------------------------------------------------
-    |
-    | These options configure the behavior of failed queue job logging so you
-    | can control how and where failed jobs are stored. Laravel ships with
-    | support for storing failed jobs in a simple file or in a database.
-    |
-    | Supported drivers: "database-uuids", "dynamodb", "file", "null"
-    |
-    */
-
+    // Настройки неудачно выполненных задач.
     'failed' => [
-        'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'sqlite'),
-        'table' => 'failed_jobs',
+        'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'), // Куда сохранять ошибки.
+        'database' => env('DB_CONNECTION', 'sqlite'), // База данных.
+        'table' => 'failed_jobs', // Таблица неудачных задач.
     ],
 
 ];

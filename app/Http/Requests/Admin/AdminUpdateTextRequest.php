@@ -1,5 +1,13 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Валидация статьи админом (app/Http/Requests/Admin/AdminUpdateTextRequest.php)
+|--------------------------------------------------------------------------
+| Администратор может менять текст и блокировать статью.
+| Изменено: вместо is_published остался только is_blocked.
+*/
+
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;

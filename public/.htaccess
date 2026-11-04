@@ -1,24 +1,28 @@
+# Правила для веб-сервера Apache.
+# Нужны, чтобы все адреса сайта вели на public/index.php.
 <IfModule mod_rewrite.c>
+    # Отключаем просмотр папок и выбор нескольких версий файла.
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Включаем механизм перенаправления URL.
     RewriteEngine On
 
-    # Handle Authorization Header
+    # Передаём заголовок Authorization в PHP.
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Handle X-XSRF-Token Header
+    # Передаём заголовок X-XSRF-Token в PHP.
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # Убираем слэш в конце адреса, если это не папка.
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # Все запросы, которых нет на диске, отправляем в index.php.
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]

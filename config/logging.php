@@ -1,5 +1,13 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Настройки логирования (config/logging.php)
+|--------------------------------------------------------------------------
+| Laravel записывает ошибки и отладочные сообщения в файлы.
+| По умолчанию используется канал stack, который пишет в single-файл.
+*/
+
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -7,132 +15,110 @@ use Monolog\Processor\PsrLogMessageProcessor;
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default Log Channel
-    |--------------------------------------------------------------------------
-    |
-    | This option defines the default log channel that is utilized to write
-    | messages to your logs. The value provided here should match one of
-    | the channels present in the list of "channels" configured below.
-    |
-    */
-
+    // Канал логирования по умолчанию.
     'default' => env('LOG_CHANNEL', 'stack'),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Deprecations Log Channel
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the log channel that should be used to log warnings
-    | regarding deprecated PHP and library features. This allows you to get
-    | your application ready for upcoming major versions of dependencies.
-    |
-    */
-
+    // Куда писать предупреждения об устаревших возможностях PHP.
     'deprecations' => [
-        'channel' => env('LOG_DEPRECATIONS_CHANNEL', 'null'),
-        'trace' => env('LOG_DEPRECATIONS_TRACE', false),
+        'channel' => env('LOG_DEPRECATIONS_CHANNEL', 'null'), // Канал (null — отключено).
+        'trace' => env('LOG_DEPRECATIONS_TRACE', false), // Добавлять стек вызовов.
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Log Channels
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the log channels for your application. Laravel
-    | utilizes the Monolog PHP logging library, which includes a variety
-    | of powerful log handlers and formatters that you're free to use.
-    |
-    | Available drivers: "single", "daily", "monthly", "slack", "syslog",
-    |                    "errorlog", "monolog", "custom", "stack"
-    |
-    */
-
+    // Список каналов логирования.
     'channels' => [
 
+        // Объединяет несколько каналов в один.
         'stack' => [
-            'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
-            'ignore_exceptions' => false,
+            'driver' => 'stack', // Драйвер «стек».
+            'channels' => explode(',', (string) env('LOG_STACK', 'single')), // Список каналов через запятую.
+            'ignore_exceptions' => false, // Не игнорировать ошибки каналов.
         ],
 
+        // Один общий файл laravel.log.
         'single' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/laravel.log'),
-            'level' => env('LOG_LEVEL', 'debug'),
-            'replace_placeholders' => true,
+            'driver' => 'single', // Драйвер «один файл».
+            'path' => storage_path('logs/laravel.log'), // Путь к файлу.
+            'level' => env('LOG_LEVEL', 'debug'), // Минимальный уровень сообщений.
+            'replace_placeholders' => true, // Подставлять значения в сообщения.
         ],
 
+        // Новый файл на каждый день.
         'daily' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/laravel.log'),
-            'level' => env('LOG_LEVEL', 'debug'),
-            'max_files' => env('LOG_DAILY_DAYS', 14),
-            'replace_placeholders' => true,
+            'driver' => 'daily', // Драйвер «по дням».
+            'path' => storage_path('logs/laravel.log'), // Базовый путь.
+            'level' => env('LOG_LEVEL', 'debug'), // Минимальный уровень.
+            'max_files' => env('LOG_DAILY_DAYS', 14), // Сколько дней хранить.
+            'replace_placeholders' => true, // Подставлять значения.
         ],
 
+        // Новый файл на каждый месяц.
         'monthly' => [
-            'driver' => 'monthly',
-            'path' => storage_path('logs/laravel.log'),
-            'level' => env('LOG_LEVEL', 'debug'),
-            'max_files' => 3,
-            'replace_placeholders' => true,
+            'driver' => 'monthly', // Драйвер «по месяцам».
+            'path' => storage_path('logs/laravel.log'), // Базовый путь.
+            'level' => env('LOG_LEVEL', 'debug'), // Минимальный уровень.
+            'max_files' => 3, // Сколько месяцев хранить.
+            'replace_placeholders' => true, // Подставлять значения.
         ],
 
+        // Отправка логов в Slack.
         'slack' => [
-            'driver' => 'slack',
-            'url' => env('LOG_SLACK_WEBHOOK_URL'),
-            'username' => env('LOG_SLACK_USERNAME', env('APP_NAME', 'Laravel')),
-            'emoji' => env('LOG_SLACK_EMOJI', ':boom:'),
-            'level' => env('LOG_LEVEL', 'critical'),
-            'replace_placeholders' => true,
+            'driver' => 'slack', // Драйвер Slack.
+            'url' => env('LOG_SLACK_WEBHOOK_URL'), // Адрес вебхука.
+            'username' => env('LOG_SLACK_USERNAME', env('APP_NAME', 'Laravel')), // Имя бота.
+            'emoji' => env('LOG_SLACK_EMOJI', ':boom:'), // Эмодзи сообщения.
+            'level' => env('LOG_LEVEL', 'critical'), // Минимальный уровень.
+            'replace_placeholders' => true, // Подставлять значения.
         ],
 
+        // Отправка логов в Papertrail.
         'papertrail' => [
-            'driver' => 'monolog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'handler' => env('LOG_PAPERTRAIL_HANDLER', SyslogUdpHandler::class),
+            'driver' => 'monolog', // Используем Monolog напрямую.
+            'level' => env('LOG_LEVEL', 'debug'), // Минимальный уровень.
+            'handler' => env('LOG_PAPERTRAIL_HANDLER', SyslogUdpHandler::class), // Обработчик.
             'handler_with' => [
-                'host' => env('PAPERTRAIL_URL'),
-                'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+                'host' => env('PAPERTRAIL_URL'), // Адрес сервера.
+                'port' => env('PAPERTRAIL_PORT'), // Порт.
+                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'), // Строка подключения.
             ],
-            'processors' => [PsrLogMessageProcessor::class],
+            'processors' => [PsrLogMessageProcessor::class], // Обработчик сообщений.
         ],
 
+        // Вывод логов в стандартный поток ошибок.
         'stderr' => [
-            'driver' => 'monolog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'handler' => StreamHandler::class,
+            'driver' => 'monolog', // Используем Monolog.
+            'level' => env('LOG_LEVEL', 'debug'), // Минимальный уровень.
+            'handler' => StreamHandler::class, // Потоковый обработчик.
             'handler_with' => [
-                'stream' => 'php://stderr',
+                'stream' => 'php://stderr', // Поток ошибок.
             ],
-            'formatter' => env('LOG_STDERR_FORMATTER'),
-            'processors' => [PsrLogMessageProcessor::class],
+            'formatter' => env('LOG_STDERR_FORMATTER'), // Формат сообщений.
+            'processors' => [PsrLogMessageProcessor::class], // Обработчик сообщений.
         ],
 
+        // Системный журнал операционной системы.
         'syslog' => [
-            'driver' => 'syslog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'facility' => env('LOG_SYSLOG_FACILITY', LOG_USER),
-            'replace_placeholders' => true,
+            'driver' => 'syslog', // Драйвер syslog.
+            'level' => env('LOG_LEVEL', 'debug'), // Минимальный уровень.
+            'facility' => env('LOG_SYSLOG_FACILITY', LOG_USER), // Категория syslog.
+            'replace_placeholders' => true, // Подставлять значения.
         ],
 
+        // Журнал ошибок PHP.
         'errorlog' => [
-            'driver' => 'errorlog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'replace_placeholders' => true,
+            'driver' => 'errorlog', // Драйвер errorlog.
+            'level' => env('LOG_LEVEL', 'debug'), // Минимальный уровень.
+            'replace_placeholders' => true, // Подставлять значения.
         ],
 
+        // Канал, который ничего не записывает.
         'null' => [
-            'driver' => 'monolog',
-            'handler' => NullHandler::class,
+            'driver' => 'monolog', // Используем Monolog.
+            'handler' => NullHandler::class, // Пустой обработчик.
         ],
 
+        // Аварийный канал для критических ошибок.
         'emergency' => [
-            'path' => storage_path('logs/laravel.log'),
+            'path' => storage_path('logs/laravel.log'), // Путь к файлу.
         ],
 
     ],

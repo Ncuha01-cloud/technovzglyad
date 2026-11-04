@@ -1,18 +1,29 @@
 #!/usr/bin/env php
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Консольная точка входа (artisan)
+|--------------------------------------------------------------------------
+| Через этот файл запускаются команды php artisan ...
+| Он подключает автозагрузку Composer и передаёт команду приложению.
+*/
+
 use Illuminate\Foundation\Application;
 use Symfony\Component\Console\Input\ArgvInput;
 
+// Запоминаем время старта команды.
 define('LARAVEL_START', microtime(true));
 
-// Register the Composer autoloader...
+// Подключаем автозагрузку классов Composer.
 require __DIR__.'/vendor/autoload.php';
 
-// Bootstrap Laravel and handle the command...
+// Создаём приложение Laravel.
 /** @var Application $app */
 $app = require_once __DIR__.'/bootstrap/app.php';
 
+// Передаём аргументы командной строки приложению.
 $status = $app->handleCommand(new ArgvInput);
 
+// Завершаем процесс с кодом результата (0 — успех).
 exit($status);

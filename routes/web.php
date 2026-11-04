@@ -1,5 +1,14 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Маршруты сайта (routes/web.php)
+|--------------------------------------------------------------------------
+| Публичные страницы, вход/регистрация, кабинет журналиста и админка.
+| Изменено: убраны маршруты поиска и фильтрации статей.
+| Доступ к закрытым разделам проверяют middleware auth и role.
+*/
+
 use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
